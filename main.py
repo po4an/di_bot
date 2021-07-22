@@ -40,14 +40,15 @@ def hello(message):
     bot.send_message(message.chat.id, "Доброе время суток, товарищ {}.\n"
                                       "Я помогу тебе в ведении бизнеса\n"
                                       "Нажми команду /info и посмотри, что я могу".format(message.from_user.first_name))
-@bot.message_handler(commands=["info"])
+@bot.message_handler(commands=["commands"])
 def info(message):
     bot.send_message(message.chat.id, "Команды, которые у меня есть:\n"
-                                      "/info - узнать мои команды\n"
+                                      "/commands - узнать мои команды\n"
                                       "/add_expence - внести расходы\n"
                                       "/sum_expences - узнать сумму всех расходов\n"
-                                      "/last5 - показать 5 последних расходов\n"
-                                      "/last_rows - показать определенное количество последних операций")
+                                      "/last_5_rows - показать 5 последних расходов\n"
+                                      "/last_rows - показать определенное количество последних операций\n"
+                                      "/delete_rows - удалить записи по их id")
 
 """@bot.message_handler(content_types= ["text"])
 def ahah(message):
@@ -56,7 +57,8 @@ def ahah(message):
 
 @bot.message_handler(commands=['add_expence'])
 def add_expence(message):
-    send = bot.send_message(message.chat.id, 'Внеси количество денег, которые потратил', reply_markup=generate_inline([("отмена операции", "stop_operation")]))
+    bot.reply_to(message=message, text = 'Жми, если захочешь отменить операцию', reply_markup=generate_inline([("отмена операции", "stop_operation")]))
+    send = bot.send_message(message.chat.id, 'Внеси количество денег, которые потратил')
     bot.register_next_step_handler(send, add_desc)
 
 
@@ -80,7 +82,10 @@ def add_expence_type(message):
 
 def expence_generate(message):
     global temp
-    temp.append(message.text.lower())
+    text = message.text.lower()
+    if text not in expence_types:
+        text = "другое"
+    temp.append(text)
     print(temp)
     db_execute(f"insert into expences (user_name, expence, description, expence_type) values ( '{temp[0]}', {temp[1]}, '{temp[2]}', '{temp[3]}')")
     bot.send_message(message.chat.id, "Успешно!\nТвоя запись в базе", reply_markup=types.ReplyKeyboardRemove())
@@ -137,7 +142,7 @@ def sum_expence_step2(message):
             conn.close()
         bot.send_message(message.chat.id, f"Сумма трат за текущий год: {sum_expences}", reply_markup=types.ReplyKeyboardRemove())
 
-@bot.message_handler(commands=['last5'])
+@bot.message_handler(commands=['last_5_rows'])
 def last(message):
     generate_img(5)
     with open('tmp.jpg', 'rb') as photo:
@@ -146,6 +151,7 @@ def last(message):
 
 @bot.message_handler(commands=['last_rows'])
 def count_rows(message):
+    bot.reply_to(message=message, text = 'Жми, если захочешь отменить операцию', reply_markup=generate_inline([("отмена операции", "stop_operation")]))
     markup = generate_markup(common_count_rows)
     send = bot.send_message(message.chat.id, "Сколько последних операций хотели бы видеть?", reply_markup=markup)
     bot.register_next_step_handler(send, fetch_rows)
@@ -163,10 +169,28 @@ def fetch_rows(message):
         bot.register_next_step_handler(send, fetch_rows)
 
 
-@bot.message_handler(commands=['test'])
-def inline(message):
-    markup = generate_inline()
-    bot.send_message(message.chat.id, 'kek', reply_markup=markup)
+@bot.message_handler(commands=['delete_rows'])
+def rows_id(message):
+    bot.reply_to(message=message, text = 'Жми, если захочешь отменить операцию', reply_markup=generate_inline([("отмена операции", "stop_operation")]))
+    send = bot.send_message(message.chat.id, "Введи номера строк через пробел, которые хотел бы удалить")
+    bot.register_next_step_handler(send, parse_rows_id)
+def parse_rows_id(message):
+    try:
+        text = message.text.lower()
+        rows_list = [int(id) for id in text.split(" ")]
+        for id in rows_list:
+            db_execute(f"insert into expences_del select * from expences where id = {id};"
+                       f"delete from expences where id = {id};"
+                       f"insert into expences_del_history (row_id, user_name) values ({id}, '{message.from_user.first_name} {message.from_user.last_name}')")
+        bot.send_message(message.chat.id, "Успешно, записи удалены")
+    except:
+        send = bot.send_message(message.chat.id, "Введи корректные id записей, которые есть в базе, через пробел")
+        bot.register_next_step_handler(send, parse_rows_id)
+
+@bot.message_handler(commands=["test"])
+def test(message):
+    pass
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call):

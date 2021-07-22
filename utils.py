@@ -19,11 +19,8 @@ def db_execute(command):
 
 def generate_markup(list):
     markup = types.ReplyKeyboardMarkup(resize_keyboard = True)
-    # Заполняем разметку перемешанными элементами
-    if len(list) % 4 == 0:
-        for i in range(0, len(list), 4):
-            markup.add(str(list[i]), str(list[i+1]), str(list[i+2]), str(list[i+3]))
-    elif len(list) % 3 == 0:
+    # Заполняем разметку перемешанными элементам
+    if len(list) % 3 == 0:
         for i in range(0, len(list), 3):
             markup.add(str(list[i]), str(list[i+1]), str(list[i+2]))
     elif len(list) % 2 == 0:
@@ -61,6 +58,8 @@ def generate_img(num):
 
 def delete_img():
     os.remove("tmp.jpg")
+
+
 
 
 
