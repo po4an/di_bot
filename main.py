@@ -5,7 +5,6 @@ from utils import db_execute, generate_markup, generate_img, delete_img, generat
 import os
 import psycopg2 as pg
 import datetime
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from prettytable import from_db_cursor
 
 
@@ -35,12 +34,18 @@ def game(message):
 
 @bot.message_handler(commands = ["start"])
 def hello(message):
-#    sti = open("stic/hello.webp", "rb")
-#    bot.send_sticker(message.chat.id, sti)
+    sti = open("stics/hello.webp", "rb")
+    bot.send_sticker(message.chat.id, sti)
     bot.send_message(message.chat.id, "Доброе время суток, товарищ {}.\n"
-                                      "Я помогу тебе в ведении бизнеса\n"
-                                      "Нажми команду /info и посмотри, что я могу".format(message.from_user.first_name))
-@bot.message_handler(commands=["commands"])
+                                      "Я помогу тебе в ведении расходов.\n"
+                                      "Нажимай кнопку 'Команды' и посмотри, что я могу".format(message.from_user.first_name), reply_markup=generate_markup(["Команды"]))
+
+@bot.message_handler(regexp="Команды")
+def handle_message(message):
+    bot.send_message(message.chat.id, "Что хочешь сделать?", reply_markup=generate_markup(["/add_expence", "/sum_expences", "/last_5_rows", "/last_rows", "/delete_rows"]))
+
+
+"""@bot.message_handler(commands=["commands"])
 def info(message):
     bot.send_message(message.chat.id, "Команды, которые у меня есть:\n"
                                       "/commands - узнать мои команды\n"
@@ -48,7 +53,7 @@ def info(message):
                                       "/sum_expences - узнать сумму всех расходов\n"
                                       "/last_5_rows - показать 5 последних расходов\n"
                                       "/last_rows - показать определенное количество последних операций\n"
-                                      "/delete_rows - удалить записи по их id")
+                                      "/delete_rows - удалить записи по их id")"""
 
 """@bot.message_handler(content_types= ["text"])
 def ahah(message):
@@ -58,7 +63,7 @@ def ahah(message):
 @bot.message_handler(commands=['add_expence'])
 def add_expence(message):
     bot.reply_to(message=message, text = 'Жми, если захочешь отменить операцию', reply_markup=generate_inline([("отмена операции", "stop_operation")]))
-    send = bot.send_message(message.chat.id, 'Внеси количество денег, которые потратил')
+    send = bot.send_message(message.chat.id, 'Внеси количество денег, которые потратил', reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(send, add_desc)
 
 
@@ -66,7 +71,10 @@ def add_desc(message):
     global temp
     try:
         msg_val = int(message.text.lower())
-        temp = [message.from_user.first_name + " " + message.from_user.last_name, msg_val]
+        try:
+            temp = [message.from_user.first_name + " " + message.from_user.last_name, msg_val]
+        except:
+            temp = [message.from_user.first_name , msg_val]
         send = bot.send_message(message.chat.id, 'На что пошел расход?\nКраткое описание')
         print(temp)
         bot.register_next_step_handler(send, add_expence_type)
@@ -88,7 +96,7 @@ def expence_generate(message):
     temp.append(text)
     print(temp)
     db_execute(f"insert into expences (user_name, expence, description, expence_type) values ( '{temp[0]}', {temp[1]}, '{temp[2]}', '{temp[3]}')")
-    bot.send_message(message.chat.id, "Успешно!\nТвоя запись в базе", reply_markup=types.ReplyKeyboardRemove())
+    bot.send_message(message.chat.id, "Успешно!\nТвоя запись в базе", reply_markup=generate_markup(["Команды"]))
 
 
 @bot.message_handler(commands=["sum_expences"])
@@ -108,7 +116,7 @@ def sum_expence_step2(message):
         finally:
             conn.close()
 
-        bot.send_message(message.chat.id, f"Сумма трат за текущий день: {sum_expences}", reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, f"Сумма трат за текущий день: {sum_expences}", reply_markup=generate_markup(["Команды"]))
     if answer == "текущая неделя":
         conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
         try:
@@ -119,7 +127,7 @@ def sum_expence_step2(message):
         finally:
             conn.close()
 
-        bot.send_message(message.chat.id, f"Сумма трат за текущую неделю: {sum_expences}", reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, f"Сумма трат за текущую неделю: {sum_expences}", reply_markup=generate_markup(["Команды"]))
     if answer == "текущий месяц":
         conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
         try:
@@ -130,7 +138,7 @@ def sum_expence_step2(message):
         finally:
             conn.close()
 
-        bot.send_message(message.chat.id, f"Сумма трат за текущий месяц: {sum_expences}", reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, f"Сумма трат за текущий месяц: {sum_expences}", reply_markup=generate_markup(["Команды"]))
     if answer == "текущий год":
         conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
         try:
@@ -140,13 +148,13 @@ def sum_expence_step2(message):
                     sum_expences = cur.fetchone()[0]
         finally:
             conn.close()
-        bot.send_message(message.chat.id, f"Сумма трат за текущий год: {sum_expences}", reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, f"Сумма трат за текущий год: {sum_expences}", reply_markup=generate_markup(["Команды"]))
 
 @bot.message_handler(commands=['last_5_rows'])
 def last(message):
     generate_img(5)
     with open('tmp.jpg', 'rb') as photo:
-        bot.send_photo(message.chat.id, photo)
+        bot.send_photo(message.chat.id, photo, reply_markup=generate_markup(["Команды"]))
     delete_img()
 
 @bot.message_handler(commands=['last_rows'])
@@ -162,7 +170,7 @@ def fetch_rows(message):
         count = int(message.text.lower())
         generate_img(count)
         with open('tmp.jpg', 'rb') as photo:
-            bot.send_photo(message.chat.id, photo, reply_markup=types.ReplyKeyboardRemove())
+            bot.send_photo(message.chat.id, photo, reply_markup=generate_markup(["Команды"]))
         delete_img()
     except:
         send = bot.send_message(message.chat.id, "Мне нужно число")
@@ -172,7 +180,7 @@ def fetch_rows(message):
 @bot.message_handler(commands=['delete_rows'])
 def rows_id(message):
     bot.reply_to(message=message, text = 'Жми, если захочешь отменить операцию', reply_markup=generate_inline([("отмена операции", "stop_operation")]))
-    send = bot.send_message(message.chat.id, "Введи номера строк через пробел, которые хотел бы удалить")
+    send = bot.send_message(message.chat.id, "Введи номера строк через пробел, которые хотел бы удалить", reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(send, parse_rows_id)
 def parse_rows_id(message):
     try:
@@ -182,21 +190,20 @@ def parse_rows_id(message):
             db_execute(f"insert into expences_del select * from expences where id = {id};"
                        f"delete from expences where id = {id};"
                        f"insert into expences_del_history (row_id, user_name) values ({id}, '{message.from_user.first_name} {message.from_user.last_name}')")
-        bot.send_message(message.chat.id, "Успешно, записи удалены")
+        bot.send_message(message.chat.id, "Успешно, записи удалены", reply_markup=generate_markup(["Команды"]))
     except:
         send = bot.send_message(message.chat.id, "Введи корректные id записей, которые есть в базе, через пробел")
         bot.register_next_step_handler(send, parse_rows_id)
 
-@bot.message_handler(commands=["test"])
-def test(message):
-    pass
+
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call):
     if call.data == "stop_operation":
         bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)
-        bot.send_message(call.message.chat.id, "Операция отменена", reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(call.message.chat.id, "Операция отменена", reply_markup=generate_markup(["Команды"]))
+
 
 if __name__ == "__main__":
     bot.polling(none_stop = True)

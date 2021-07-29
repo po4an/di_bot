@@ -32,10 +32,21 @@ def generate_markup(list):
     return markup
 
 def generate_inline(list):
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    for item in list:
-        but = types.InlineKeyboardButton(text = item[0], callback_data=item[1])
-        markup.add(but)
+    markup = types.InlineKeyboardMarkup(row_width=3)
+    if len(list) % 3 == 0:
+        for i in range(0, len(list), 3):
+            but1 = types.InlineKeyboardButton(text = list[i][0], callback_data=list[i][1])
+            but2 = types.InlineKeyboardButton(text = list[i+1][0], callback_data=list[i+1][1])
+            but3 = types.InlineKeyboardButton(text = list[i+2][0], callback_data=list[i+2][1])
+            markup.add(but1, but2, but3)
+    elif len(list) % 2 == 0:
+        for i in range(0, len(list), 2):
+            but1 = types.InlineKeyboardButton(text=list[i][0], callback_data=list[i][1])
+            but2 = types.InlineKeyboardButton(text=list[i+1][0], callback_data=list[i+1][1])
+            markup.add(but1, but2)
+    else:
+        for item in list:
+            markup.add(types.InlineKeyboardButton(text=item[0], callback_data=item[1]))
     return markup
 
 def generate_img(num):
