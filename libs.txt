@@ -1,0 +1,4 @@
+pyTelegramBotAPI==3.7.6
+psycopg2==2.8.6
+prettytable==2.1.0
+Pillow==8.0.1

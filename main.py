@@ -14,24 +14,6 @@ expence_types = ["Табак", "HQD", "IZI", "Аксуссуары", "Личны
 common_count_rows = [3,5,10,15,30,50]
 
 
-"""@bot.message_handler(commands = ["test"])
-def tete(message):
-    for i in os.listdir("musmp3/"):
-        if i.split(".")[-1] == "ogg":
-            f = open('musmp3/' + i, 'rb')
-            ty = bot.send_voice(message.chat.id, f)
-            bot.send_message(message.chat.id, ty.voice.file_id, reply_to_message_id = ty.message_id)"""
-
-
-"""@bot.message_handler(commands = ["game"])
-def game(message):
-    db_worker = SQLighter(config.database_name)
-    row = db_worker.select_single(random.randint(1, utils.get_rows_count()))
-    markup = utils.generate_markup(row[0][2], row[0][3])
-    bot.send_voice(message.chat.id, row[0][1], reply_markup = markup)
-    utils.set_user_game(message.chat.id, row[0][2])
-    db_worker.close()"""
-
 @bot.message_handler(commands = ["start"])
 def hello(message):
     sti = open("stics/hello.webp", "rb")
@@ -107,7 +89,7 @@ def sum_expences_step1(message):
 def sum_expence_step2(message):
     answer = message.text.lower()
     if answer == "текущий день":
-        conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
+        conn = pg.connect(host='postgres', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='5432')
         try:
             with conn:
                 with conn.cursor() as cur:
@@ -118,7 +100,7 @@ def sum_expence_step2(message):
 
         bot.send_message(message.chat.id, f"Сумма трат за текущий день: {sum_expences}", reply_markup=generate_markup(["Команды"]))
     if answer == "текущая неделя":
-        conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
+        conn = pg.connect(host='postgres', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='5432')
         try:
             with conn:
                 with conn.cursor() as cur:
@@ -129,7 +111,7 @@ def sum_expence_step2(message):
 
         bot.send_message(message.chat.id, f"Сумма трат за текущую неделю: {sum_expences}", reply_markup=generate_markup(["Команды"]))
     if answer == "текущий месяц":
-        conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
+        conn = pg.connect(host='postgres', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='5432')
         try:
             with conn:
                 with conn.cursor() as cur:
@@ -140,7 +122,7 @@ def sum_expence_step2(message):
 
         bot.send_message(message.chat.id, f"Сумма трат за текущий месяц: {sum_expences}", reply_markup=generate_markup(["Команды"]))
     if answer == "текущий год":
-        conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
+        conn = pg.connect(host='postgres', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='5432')
         try:
             with conn:
                 with conn.cursor() as cur:

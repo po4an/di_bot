@@ -1,14 +1,13 @@
 import psycopg2 as pg
 from telebot import types
 import datetime
-import calendar
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 from prettytable import from_db_cursor
 from PIL import Image, ImageDraw, ImageFont
 import os
 
 def db_execute(command):
-    conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
+    conn = pg.connect(host='postgres', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='5432')
     try:
         with conn:
             with conn.cursor() as cur:
@@ -50,7 +49,7 @@ def generate_inline(list):
     return markup
 
 def generate_img(num):
-    conn = pg.connect(host='localhost', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='6543')
+    conn = pg.connect(host='postgres', dbname='di_bot', user='di_bot', password='dipadissdiwd', port='5432')
     try:
         with conn:
             with conn.cursor() as cur:
