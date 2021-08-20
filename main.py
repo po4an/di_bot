@@ -72,9 +72,9 @@ def add_expence_type(message):
 
 def expence_generate(message):
     global temp
-    text = message.text.lower()
+    text = message.text
     if text not in expence_types:
-        text = "другое"
+        text = "Другое"
     temp.append(text)
     print(temp)
     db_execute(f"insert into expences (user_name, expence, description, expence_type) values ( '{temp[0]}', {temp[1]}, '{temp[2]}', '{temp[3]}')")

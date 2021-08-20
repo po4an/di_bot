@@ -55,11 +55,21 @@ def generate_img(num):
             with conn.cursor() as cur:
                 cur.execute(f"select * from expences order by load_dttm desc limit {num}")
                 mytable = from_db_cursor(cur)
+                cur.execute("select max(length(description)) from expences")
+                char_count = int(cur.fetchone()[0])
+                print(char_count)
     finally:
         conn.close()
-
-    out = Image.new("RGB", (1900, (110 + 28*num)), color='#272727')
-
+#1480 without desc
+#default desc 250
+#if lower 250, than 1480
+#18pix per char
+#50pix - tech pix
+    if (char_count*18) > 200:
+        width = (char_count*18 + 1530)
+    else:
+        width = 1730
+    out = Image.new("RGB", (width, (110 + 28*num)), color='#272727')
     d = ImageDraw.Draw(out)
     font = ImageFont.truetype("consola.ttf", 32, encoding='UTF-8')
 
